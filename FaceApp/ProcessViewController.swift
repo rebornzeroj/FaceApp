@@ -16,7 +16,8 @@ protocol Expression
 
 class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectionViewDataSource,UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, Expression {
 
-    var faceImg: UIImage?
+    var scaleRect: CGRect?
+    var faceImg: UIImage!
     var needHide: Bool!
     var expression: String?
     weak var faceView: UIImageView!
@@ -35,6 +36,9 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
         self.navigationController?.setNavigationBarHidden(false, animated: false)
         self.view.backgroundColor = UIColor.white
         
+        if let scale = self.scaleRect {
+            self.faceImg = self.faceImg.crop(rect: scale)
+        }
         let imageView = UIImageView(image: faceImg)
         imageView.contentMode = .scaleAspectFit
         self.faceView = imageView
@@ -43,8 +47,8 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
         mainView.delegate = self
         
         self.scrollView = mainView
-        mainView.minimumZoomScale=0.5;
-        mainView.maximumZoomScale=6.0;
+        mainView.minimumZoomScale = 0.5;
+        mainView.maximumZoomScale = 4.0;
         mainView.showsHorizontalScrollIndicator = false
         mainView.showsVerticalScrollIndicator = false
         
@@ -71,9 +75,11 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
             make.center.equalTo(self.view)
         }
         
+        let imageAspect =  self.faceImg.size.height / self.faceImg.size.width
+        
         imageView.snp.makeConstraints { (make) -> Void in
-            make.width.equalTo(mainView)
-            make.height.equalTo(mainView)
+            make.width.equalToSuperview().multipliedBy(1.2)
+            make.height.equalTo(imageView.snp_width).multipliedBy(imageAspect)
         }
 
         selectionPanel.snp.makeConstraints{ (make) -> Void in
@@ -93,13 +99,15 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
         let blurEffectView = UIVisualEffectView(effect: blurEffect)
         blurEffectView.frame = selectionPanel.frame
         selectionPanel.backgroundView = blurEffectView
+        
+        mainView.isScrollEnabled = true
     }
     
     func scrollViewDidZoom(_ scrollView: UIScrollView) {
         let imageViewSize = self.faceView.frame.size
         let scrollViewSize = scrollView.bounds.size
-        let verticalInset = imageViewSize.height < scrollViewSize.height ? (scrollViewSize.height - imageViewSize.height) / 2 : 0
-        let horizontalInset = imageViewSize.width < scrollViewSize.width ? (scrollViewSize.width - imageViewSize.width) / 2 : 0
+        let verticalInset = imageViewSize.height < scrollViewSize.height ? (scrollViewSize.height - imageViewSize.height) / 2 : 5
+        let horizontalInset = imageViewSize.width < scrollViewSize.width ? (scrollViewSize.width - imageViewSize.width) / 2 : 5
         scrollView.contentInset = UIEdgeInsets(top: verticalInset, left: horizontalInset, bottom: verticalInset, right: horizontalInset)
     }
     
@@ -113,11 +121,14 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
     }
     
     @objc func moreAction(){
-        let tableViewController = TableViewController()
-        tableViewController.delegate = self
-        self.needHide = false
-        self.navigationItem.backBarButtonItem?.title = "Done"
-        self.navigationController?.pushViewController(tableViewController, animated: true)
+        
+//        self.faceImg = self.faceImg?.crop(rect: CGRect(x: 0, y: 0, width: 50, height: 50))
+//        self.faceView.image = self.faceImg
+//        let tableViewController = TableViewController()
+//        tableViewController.delegate = self
+//        self.needHide = false
+//        self.navigationItem.backBarButtonItem?.title = "Done"
+//        self.navigationController?.pushViewController(tableViewController, animated: true)
     }
     
     override func viewWillDisappear(_ animated: Bool) {

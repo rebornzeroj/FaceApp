@@ -105,8 +105,10 @@ class LoginViewController: UIViewController {
 //        else {
 //            print("You have entered an invalid username or password")
 //        }
-        let mainViewController = MainViewController()
-        self.navigationController?.pushViewController(mainViewController, animated: true)
+//        let mainViewController = MainViewController()
+//        self.navigationController?.pushViewController(mainViewController, animated: true)
+        let viewController = ViewController()
+        self.navigationController?.pushViewController(viewController, animated: true)
         
 //        uploadImg(img: UIImage(named: "Trigger")!)
     }

@@ -21,6 +21,7 @@ class MainViewController: UIViewController, UINavigationControllerDelegate, UIIm
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+
         self.navigationController?.setNavigationBarHidden(true, animated: false)
         let previewView = UIView()
         self.view.addSubview(previewView)

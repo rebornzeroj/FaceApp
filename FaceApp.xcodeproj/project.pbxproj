@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2D334CC020AFE0C300EF7AB5 /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D334CBE20AFE0C200EF7AB5 /* PreviewView.swift */; };
+		2D334CC120AFE0C300EF7AB5 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D334CBF20AFE0C300EF7AB5 /* ViewController.swift */; };
 		2D5590F220A96FF500AA2209 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2D5590F120A96FF500AA2209 /* Assets.xcassets */; };
 		2D59248B20AA9A1A00AB941D /* HorizontalViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D59248A20AA9A1A00AB941D /* HorizontalViewController.swift */; };
 		2D59248D20AAA25F00AB941D /* MyCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D59248C20AAA25F00AB941D /* MyCollectionViewCell.swift */; };
@@ -41,6 +43,8 @@
 
 /* Begin PBXFileReference section */
 		1532E256725320EADEF5CF9A /* Pods-FaceApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FaceApp.debug.xcconfig"; path = "Pods/Target Support Files/Pods-FaceApp/Pods-FaceApp.debug.xcconfig"; sourceTree = "<group>"; };
+		2D334CBE20AFE0C200EF7AB5 /* PreviewView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PreviewView.swift; sourceTree = "<group>"; };
+		2D334CBF20AFE0C300EF7AB5 /* ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		2D5590F120A96FF500AA2209 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2D59248A20AA9A1A00AB941D /* HorizontalViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizontalViewController.swift; sourceTree = "<group>"; };
 		2D59248C20AAA25F00AB941D /* MyCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyCollectionViewCell.swift; sourceTree = "<group>"; };
@@ -117,6 +121,8 @@
 				2D77DC13209F56670022BAAB /* AppDelegate.swift */,
 				2D77DC15209F56670022BAAB /* LoginViewController.swift */,
 				2D77DC45209F61060022BAAB /* MainViewController.swift */,
+				2D334CBE20AFE0C200EF7AB5 /* PreviewView.swift */,
+				2D334CBF20AFE0C300EF7AB5 /* ViewController.swift */,
 				2D60423020A842D40078C039 /* ProcessViewController.swift */,
 				2D77DC17209F56670022BAAB /* Main.storyboard */,
 				2D77DC1C209F56680022BAAB /* LaunchScreen.storyboard */,
@@ -339,7 +345,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				2D60423120A842D40078C039 /* ProcessViewController.swift in Sources */,
+				2D334CC020AFE0C300EF7AB5 /* PreviewView.swift in Sources */,
 				2D59248D20AAA25F00AB941D /* MyCollectionViewCell.swift in Sources */,
+				2D334CC120AFE0C300EF7AB5 /* ViewController.swift in Sources */,
 				2D77DC46209F61060022BAAB /* MainViewController.swift in Sources */,
 				2D77DC16209F56670022BAAB /* LoginViewController.swift in Sources */,
 				2D60423520A86EE70078C039 /* TableViewController.swift in Sources */,
@@ -521,7 +529,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = GY384L655Q;
 				INFOPLIST_FILE = FaceApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -541,7 +549,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = GY384L655Q;
 				INFOPLIST_FILE = FaceApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
