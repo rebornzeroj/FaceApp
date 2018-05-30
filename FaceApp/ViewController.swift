@@ -626,26 +626,26 @@ extension UIImage {
         
         var offsetX: CGFloat = 0
         var offsetY: CGFloat = 0
-        let scaleOffsetX: CGFloat = 0.5
-        let scaleOffsetY: CGFloat = 1
+        let scaleOffsetX: CGFloat = 0
+        let scaleOffsetY: CGFloat = 0
         
         if x - width * scaleOffsetX > 0 {
             offsetX = width * scaleOffsetX
             x = x - offsetX
         } else {
-            offsetX = x - 0
+            offsetX = 0
             x = 0
         }
         if y - height * scaleOffsetY > 0 {
             offsetY = height * scaleOffsetY
             y = y - offsetY
         } else {
-            offsetY = y - 0
+            offsetY = 0
             x = 0
         }
         
         width += offsetX * 2
-        height += offsetY * 1.2
+        height += offsetY * 2
         
         let tempY = y
         y = imageWidth - (x + width)
@@ -653,8 +653,11 @@ extension UIImage {
         
         rect.origin.x = x
         rect.origin.y = y
-        rect.size.width = width
+        rect.size.width = height
         rect.size.height = width
+//        rect.size.width = width
+//        rect.size.height = width
+        
         
         let imageRef = self.cgImage!.cropping(to: rect)
         let image = UIImage(cgImage: imageRef!, scale: self.scale, orientation: self.imageOrientation)

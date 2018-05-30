@@ -8,6 +8,7 @@
 
 import UIKit
 import Alamofire
+import SwiftyJSON
 
 protocol Expression
 {
@@ -16,6 +17,9 @@ protocol Expression
 
 class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectionViewDataSource,UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, Expression {
 
+    let api_key = "ZuVpccJXWNud4U4qZxmnWWAFSx0wPu0w"
+    let api_secret = "SoNveH0_54jOT6Ratswjnz9ZiCjg6XLD"
+    
     var scaleRect: CGRect?
     var faceImg: UIImage!
     var needHide: Bool!
@@ -23,22 +27,34 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
     weak var faceView: UIImageView!
     weak var scrollView: UIScrollView!
     var collectionView: UICollectionView?
+    var expressionImages: [String:UIImage] = [:]
+    var confidences: [String: String] = [:]
     var images: [UIImage] = [UIImage(named: "neutral")!, UIImage(named: "happy")!, UIImage(named: "surprise")!,
-                             UIImage(named: "sad")!, UIImage(named: "anger")!, UIImage(named: "fear")!, UIImage(named: "disgust")!]
-    var captions: [String] = ["neutral", "happy", "surprise", "sad", "anger", "fear", "disgust"]
+                             UIImage(named: "sad")!, UIImage(named: "anger")!]
+    var captions: [String] = ["neutral", "happy", "surprise", "sad", "anger"]
+    var maskView: UIVisualEffectView!
+    var loadingFlag = false
+    let host = "http://218.193.183.249:8888"
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
         self.needHide = true
+
+        let loadingBlurEffect = UIBlurEffect(style: .extraLight)
+        self.maskView = UIVisualEffectView(effect: loadingBlurEffect)
         
         self.navigationController?.setNavigationBarHidden(false, animated: false)
         self.view.backgroundColor = UIColor.white
         
         if let scale = self.scaleRect {
             self.faceImg = self.faceImg.crop(rect: scale)
+            self.faceImg = self.faceImg.imageWithImage(scaledToSize: CGSize(width: 256, height: 256))
+            self.faceImg = self.faceImg.fixOrientation()
         }
+        self.expressionImages["neutral"] = self.faceImg
+        
         let imageView = UIImageView(image: faceImg)
         imageView.contentMode = .scaleAspectFit
         self.faceView = imageView
@@ -78,8 +94,8 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
         let imageAspect =  self.faceImg.size.height / self.faceImg.size.width
         
         imageView.snp.makeConstraints { (make) -> Void in
-            make.width.equalToSuperview().multipliedBy(1.2)
-            make.height.equalTo(imageView.snp_width).multipliedBy(imageAspect)
+            make.width.equalToSuperview().multipliedBy(1.0)
+            make.height.equalTo(imageView.snp.width).multipliedBy(imageAspect)
         }
 
         selectionPanel.snp.makeConstraints{ (make) -> Void in
@@ -101,6 +117,15 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
         selectionPanel.backgroundView = blurEffectView
         
         mainView.isScrollEnabled = true
+        
+        self.view.addSubview(self.maskView)
+        maskView.snp.makeConstraints { (make) in
+            make.width.equalTo(self.view)
+            make.height.equalTo(self.view)
+        }
+        
+        self.maskView.isHidden = true
+        
     }
     
     func scrollViewDidZoom(_ scrollView: UIScrollView) {
@@ -120,8 +145,37 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
         // Dispose of any resources that can be recreated.
     }
     
+    func compareFace(faceOrg: UIImage, faceChanged: UIImage, expression: String) {
+        let imageDataOrg = UIImagePNGRepresentation(faceOrg)!
+        let encodeStringOrg = imageDataOrg.base64EncodedString(options: Data.Base64EncodingOptions.lineLength64Characters)
+        let imageDataChanged = UIImagePNGRepresentation(faceChanged)!
+        let encodeStringChanged = imageDataChanged.base64EncodedString(options: Data.Base64EncodingOptions.lineLength64Characters)
+        let parameters: Parameters = [
+            "api_key": api_key,
+            "api_secret": api_secret,
+            "image_base64_1": encodeStringOrg,
+            "image_base64_2": encodeStringChanged
+        ]
+        Alamofire.request("https://api-cn.faceplusplus.com/facepp/v3/compare", method: .post, parameters: parameters).responseJSON { response in
+            if response.data != nil {
+                do {
+                    let json = try JSON(data: response.data!)
+                    let rawConfidence = json["confidence"].rawString()
+                    if let confidence = rawConfidence {
+                        print(confidence)
+                        self.confidences[expression] = confidence
+                        self.navigationItem.title = confidence
+                    }
+                }
+                catch {
+                    print("json praser error")
+            
+                }
+            }
+        }
+    }
+    
     @objc func moreAction(){
-        
 //        self.faceImg = self.faceImg?.crop(rect: CGRect(x: 0, y: 0, width: 50, height: 50))
 //        self.faceView.image = self.faceImg
 //        let tableViewController = TableViewController()
@@ -145,19 +199,28 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
         self.expression = expression
     }
     
-    func uploadImg(img: UIImage){
-        
+    func uploadImg(img: UIImage, expression: String){
+        self.navigationItem.title = expression
+        self.loadingFlag = true
+        UIView.transition(with: self.maskView, duration: 1, options: .transitionCrossDissolve, animations: { self.maskView.isHidden = false }, completion: nil)
+//        self.maskView.isHidden = false
         let orgiFace = UIImagePNGRepresentation(img)!
-        Alamofire.upload(orgiFace, to: "http://127.0.0.1:8000/demo/upload/").responseData { response in
+        Alamofire.upload(orgiFace, to: self.host + "/demo/\(expression)").responseData { response in
             if let data = response.result.value {
                 let newFace = UIImage(data: data)
+                self.expressionImages[expression] = newFace
                 self.faceView!.image = newFace
+                self.loadingFlag = false
+//                    self.maskView.isHidden = true
+                self.compareFace(faceOrg: self.faceImg, faceChanged: newFace!, expression: expression)
+                UIView.transition(with: self.maskView, duration: 1, options: .transitionCrossDissolve, animations: { self.maskView.isHidden = true }, completion: nil)
             }
         }
+
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 7
+        return self.captions.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -174,8 +237,18 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        print(self.captions[indexPath.row])
+        if self.loadingFlag {
+            return
+        }
+        let expression = self.captions[indexPath.row]
+        if let newFaceImg = self.expressionImages[expression] {
+            self.faceView.image = newFaceImg
+            self.navigationItem.title = self.confidences[expression]
+        } else {
+            uploadImg(img: self.faceImg, expression: expression)
+        }
     }
+    
     /*
     // MARK: - Navigation
 
@@ -186,4 +259,28 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
     }
     */
 
+}
+
+extension UIImage {
+    func fixOrientation() -> UIImage {
+        if self.imageOrientation == UIImageOrientation.up {
+            return self
+        }
+        UIGraphicsBeginImageContextWithOptions(self.size, false, self.scale)
+        self.draw(in: CGRect(x: 0, y: 0, width: self.size.width, height: self.size.height))
+        if let normalizedImage: UIImage = UIGraphicsGetImageFromCurrentImageContext() {
+            UIGraphicsEndImageContext()
+            return normalizedImage
+        } else {
+            return self
+        }
+    }
+    
+    func imageWithImage(scaledToSize newSize:CGSize) -> UIImage{
+        UIGraphicsBeginImageContextWithOptions(newSize, false, 0.0);
+        self.draw(in: CGRect(origin: CGPoint.zero, size: CGSize(width: newSize.width, height: newSize.height)))
+        let newImage:UIImage = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        return newImage
+    }
 }

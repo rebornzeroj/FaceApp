@@ -65,10 +65,7 @@ class HorizontalViewController: UIViewController, UICollectionViewDataSource,UIC
 //        return CGSize(width: self.view.frame.size.width * 0.3, height: self.view.frame.size.width * 0.4)
         return CGSize(width: 80, height: 80)
     }
-    
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        print(self.captions[indexPath.row])
-    }
+
     /*
     // MARK: - Navigation
 
