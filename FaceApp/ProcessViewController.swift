@@ -9,6 +9,7 @@
 import UIKit
 import Alamofire
 import SwiftyJSON
+import Toast_Swift
 
 protocol Expression
 {
@@ -17,8 +18,8 @@ protocol Expression
 
 class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectionViewDataSource,UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, Expression {
 
-    let api_key = "ZuVpccJXWNud4U4qZxmnWWAFSx0wPu0w"
-    let api_secret = "SoNveH0_54jOT6Ratswjnz9ZiCjg6XLD"
+    let api_key = "NeSGlSk3KBueWp-K6Cr18I_-MiuZ4l2u"
+    let api_secret = "j22uKoQLiIw-5sazuu0lzCkYdNQEn_OQ"
     
     var scaleRect: CGRect?
     var faceImg: UIImage!
@@ -34,7 +35,8 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
     var captions: [String] = ["neutral", "happy", "surprise", "sad", "anger"]
     var maskView: UIVisualEffectView!
     var loadingFlag = false
-    let host = "http://218.193.183.249:8888"
+//    let host = "http://218.193.183.249:8888"
+    let host = "http://192.168.3.191:8000"
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -50,8 +52,11 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
         
         if let scale = self.scaleRect {
             self.faceImg = self.faceImg.crop(rect: scale)
-            self.faceImg = self.faceImg.imageWithImage(scaledToSize: CGSize(width: 256, height: 256))
+            self.faceImg = self.faceImg.imageWithImage(scaledToSize: CGSize(width: 128, height: 128))
             self.faceImg = self.faceImg.fixOrientation()
+        }
+        else {
+            self.faceImg = self.faceImg.imageWithImage(scaledToSize: CGSize(width: 128, height: 128))
         }
         self.expressionImages["neutral"] = self.faceImg
         
@@ -156,22 +161,27 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
             "image_base64_1": encodeStringOrg,
             "image_base64_2": encodeStringChanged
         ]
-        Alamofire.request("https://api-cn.faceplusplus.com/facepp/v3/compare", method: .post, parameters: parameters).responseJSON { response in
-            if response.data != nil {
-                do {
-                    let json = try JSON(data: response.data!)
-                    let rawConfidence = json["confidence"].rawString()
-                    if let confidence = rawConfidence {
-                        print(confidence)
-                        self.confidences[expression] = confidence
-                        self.navigationItem.title = confidence
+        Alamofire.request("https://api-cn.faceplusplus.com/facepp/v3/compare", method: .post, parameters: parameters)
+//            .responseString { response in
+//                print(response.result.value)
+//            }
+            .responseJSON { response in
+                if response.data != nil {
+                    do {
+                        let json = try JSON(data: response.data!)
+                        let rawConfidence = json["confidence"].rawString()
+                        if rawConfidence != nil{
+                            print(rawConfidence)
+    //                        self.confidences[expression] = confidence
+                            self.view.makeToast("confidence: \(rawConfidence!)")
+    //                        self.navigationItem.title = confidence
+                        }
+                    }
+                    catch {
+                        print("json praser error")
+                
                     }
                 }
-                catch {
-                    print("json praser error")
-            
-                }
-            }
         }
     }
     
@@ -242,8 +252,12 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
         }
         let expression = self.captions[indexPath.row]
         if let newFaceImg = self.expressionImages[expression] {
+            if self.navigationItem.title == expression{
+                uploadImg(img: self.faceImg, expression: expression)
+            }
             self.faceView.image = newFaceImg
-            self.navigationItem.title = self.confidences[expression]
+            self.navigationItem.title = expression
+//            self.navigationItem.title = self.confidences[expression]
         } else {
             uploadImg(img: self.faceImg, expression: expression)
         }
