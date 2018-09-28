@@ -626,8 +626,8 @@ extension UIImage {
         
         var offsetX: CGFloat = 0
         var offsetY: CGFloat = 0
-        let scaleOffsetX: CGFloat = 0
-        let scaleOffsetY: CGFloat = 0
+        let scaleOffsetX: CGFloat = 0.2
+        let scaleOffsetY: CGFloat = 0.2
         
         if x - width * scaleOffsetX > 0 {
             offsetX = width * scaleOffsetX

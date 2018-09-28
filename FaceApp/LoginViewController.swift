@@ -24,7 +24,9 @@ class LoginViewController: UIViewController {
     weak var maskView: UIVisualEffectView!
     var base_name: String!
 //    let host = "http://218.193.183.249:8888"
-    let host = "http://192.168.3.191:8000"
+//    let host = "http://192.168.3.191:8000"
+//    let host = "http://192.168.1.105:8000"
+    let host = "http://192.168.3.21:8000"
     var username: String? {
         get {
             return usernameTextView.text?.trim()

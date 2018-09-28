@@ -23,6 +23,7 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
     
     var scaleRect: CGRect?
     var faceImg: UIImage!
+    var cropFace: UIImage!
     var needHide: Bool!
     var expression: String?
     weak var faceView: UIImageView!
@@ -36,7 +37,9 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
     var maskView: UIVisualEffectView!
     var loadingFlag = false
 //    let host = "http://218.193.183.249:8888"
-    let host = "http://192.168.3.191:8000"
+//    let host = "http://192.168.3.191:8000"
+//    let host = "http://192.168.1.105:8000"
+    let host = "http://192.168.3.21:8000"
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -57,6 +60,7 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
         }
         else {
             self.faceImg = self.faceImg.imageWithImage(scaledToSize: CGSize(width: 128, height: 128))
+            self.cropFace = self.faceImg
         }
         self.expressionImages["neutral"] = self.faceImg
         
@@ -80,6 +84,8 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
         layout.scrollDirection = .horizontal
         
         let selectionPanel = UICollectionView(frame: self.view.frame, collectionViewLayout: layout)
+        selectionPanel.showsVerticalScrollIndicator = false
+        selectionPanel.showsVerticalScrollIndicator = false
         
         self.collectionView = selectionPanel
         
@@ -97,7 +103,7 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
         }
         
         let imageAspect =  self.faceImg.size.height / self.faceImg.size.width
-        
+
         imageView.snp.makeConstraints { (make) -> Void in
             make.width.equalToSuperview().multipliedBy(1.0)
             make.height.equalTo(imageView.snp.width).multipliedBy(imageAspect)
@@ -109,8 +115,9 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
             make.right.equalTo(self.view)
             make.height.equalTo(100)
         }
-        
-        let selectBtn = UIBarButtonItem(image: UIImage(named: "more"), style: .plain, target: self, action: #selector(moreAction))
+
+        let selectBtn = UIBarButtonItem(title: "Save", style: .plain, target: self, action: #selector(saveAction))
+//        let selectBtn = UIBarButtonItem(image: UIImage(named: "more"), style: .plain, target: self, action: #selector(moreAction))
         
         self.navigationItem.rightBarButtonItem = selectBtn
         
@@ -170,11 +177,11 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
                     do {
                         let json = try JSON(data: response.data!)
                         let rawConfidence = json["confidence"].rawString()
-                        if rawConfidence != nil{
-                            print(rawConfidence)
-    //                        self.confidences[expression] = confidence
-                            self.view.makeToast("confidence: \(rawConfidence!)")
-    //                        self.navigationItem.title = confidence
+                        if let confidence = rawConfidence{
+                            print(confidence)
+//                            self.confidences[expression] = confidence
+//                            self.view.makeToast("confidence: \(confidence)")
+//                            self.navigationItem.title = confidence
                         }
                     }
                     catch {
@@ -185,14 +192,13 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
         }
     }
     
-    @objc func moreAction(){
-//        self.faceImg = self.faceImg?.crop(rect: CGRect(x: 0, y: 0, width: 50, height: 50))
-//        self.faceView.image = self.faceImg
-//        let tableViewController = TableViewController()
-//        tableViewController.delegate = self
-//        self.needHide = false
-//        self.navigationItem.backBarButtonItem?.title = "Done"
-//        self.navigationController?.pushViewController(tableViewController, animated: true)
+    @objc func saveAction(){
+        if let image = self.faceView.image {
+            // Save our captured image to photos album
+            UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+            print("Saved")
+//            self.view.makeToast("Saved")
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -209,21 +215,57 @@ class ProcessViewController: UIViewController, UIScrollViewDelegate, UICollectio
         self.expression = expression
     }
     
+    func cropImg(img: UIImage){
+        let orgiFace = UIImagePNGRepresentation(img)!
+        Alamofire.upload(orgiFace, to: self.host + "/demo/crop").responseData
+            { response in
+                if let data = response.result.value {
+                    let newFace = UIImage(data: data)
+                    self.cropFace = newFace
+                }
+        }
+    }
+    
     func uploadImg(img: UIImage, expression: String){
         self.navigationItem.title = expression
         self.loadingFlag = true
         UIView.transition(with: self.maskView, duration: 1, options: .transitionCrossDissolve, animations: { self.maskView.isHidden = false }, completion: nil)
 //        self.maskView.isHidden = false
-        let orgiFace = UIImagePNGRepresentation(img)!
-        Alamofire.upload(orgiFace, to: self.host + "/demo/\(expression)").responseData { response in
-            if let data = response.result.value {
-                let newFace = UIImage(data: data)
-                self.expressionImages[expression] = newFace
-                self.faceView!.image = newFace
-                self.loadingFlag = false
-//                    self.maskView.isHidden = true
-                self.compareFace(faceOrg: self.faceImg, faceChanged: newFace!, expression: expression)
-                UIView.transition(with: self.maskView, duration: 1, options: .transitionCrossDissolve, animations: { self.maskView.isHidden = true }, completion: nil)
+        if self.cropFace == nil {
+            let oldFace = UIImagePNGRepresentation(img)!
+            Alamofire.upload(oldFace, to: self.host + "/demo/crop_ios").responseData
+                { response in
+                    if let data = response.result.value {
+                        let newFace = UIImage(data: data)
+                        self.cropFace = newFace
+                        let orgiFace = UIImagePNGRepresentation(self.cropFace)!
+                        Alamofire.upload(orgiFace, to: self.host + "/demo/\(expression)").responseData { response in
+                            if let data = response.result.value {
+                                let newFace = UIImage(data: data)
+                                self.expressionImages[expression] = newFace
+                                self.faceView!.image = newFace
+                                self.loadingFlag = false
+                                //                    self.maskView.isHidden = true
+                                self.compareFace(faceOrg: self.faceImg, faceChanged: newFace!, expression: expression)
+                                UIView.transition(with: self.maskView, duration: 1, options: .transitionCrossDissolve, animations: { self.maskView.isHidden = true }, completion: nil)
+                            }
+                        }
+                        
+                    }
+            }
+        }
+        else {
+            let orgiFace = UIImagePNGRepresentation(self.cropFace)!
+            Alamofire.upload(orgiFace, to: self.host + "/demo/\(expression)").responseData { response in
+                if let data = response.result.value {
+                    let newFace = UIImage(data: data)
+                    self.expressionImages[expression] = newFace
+                    self.faceView!.image = newFace
+                    self.loadingFlag = false
+    //                    self.maskView.isHidden = true
+                    self.compareFace(faceOrg: self.faceImg, faceChanged: newFace!, expression: expression)
+                    UIView.transition(with: self.maskView, duration: 1, options: .transitionCrossDissolve, animations: { self.maskView.isHidden = true }, completion: nil)
+                }
             }
         }
 
