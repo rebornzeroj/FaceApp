@@ -2,7 +2,7 @@
 
 Transform your face using Artificial Intelligence.
 
-![demo](https://lh3.googleusercontent.com/-RfHPpgT4F3U/W645yxE93zI/AAAAAAAAFJY/w0SZINdTd_Mz0RLDsgxHBTotzA60SoQzACHMYCw/I/demo.png)
+![demo](https://github.com/rebornzeroj/FaceApp/blob/master/demo.png)
 
 ## Pod
 1. SnapKit
